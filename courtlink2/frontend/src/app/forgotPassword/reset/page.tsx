@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { cookies } from "next/headers";
 
-export default function forgot() {
+export default function Forgot() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [otp,setotp] = useState("");
