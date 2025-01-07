@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  Prisoner
+  Lawyer
+}
+
+enum Status{
+  Accepted
+  Rejected
+  Pending
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  fullname  String @default("Unknown")
+  email     String   @unique
+  password  String
+  role     Role       @default(Prisoner)
+  isformfilled Boolean @default(false)
+  Prisoner Prisoner?
+  Lawyer   Lawyer?
+  applicants Applicant[]
+  sentMessages Message[] // Messages sent by the user
+  chatsAsUser1  Chat[]     @relation("ChatUser1") 
+  chatsAsUser2  Chat[]     @relation("ChatUser2")
+}
+
+model Prisoner {
+  id                      Int       @id @default(autoincrement())
+  name                    String
+  email                   String    @unique
+  prisonerId              String    @unique
+  dateOfBirth             String
+  prisonLocation          String
+  crime                   String
+  securityQuestion        String
+  emergencyContact        String
+  inmateStatus            String
+  caseId                  String    @unique
+  languagePreference      String
+  medicalInfo             String
+  additionalInfo          String 
+  userId                  Int       @unique
+  user                    User      @relation(fields: [userId], references: [id])
+  relationships           PrisonerLawyer[]
+  contactRequests       ContactRequest[]  // New: Relation to ContactRequest
+}
+
+model Lawyer {
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  email                 String    @unique
+  contacts              String
+  dateOfBirth             String
+  barRegistrationNumber String    @unique
+  casesSolved           Int       @default(0)
+  specializations       String[]
+  licenseVerified       Boolean      @default(true)
+  availability          String
+  additionalInfo          String
+  userId                  Int       @unique
+  user                    User      @relation(fields: [userId], references: [id])
+  relationships         PrisonerLawyer[]
+  contactRequests      ContactRequest[]  
+}
+
+model PrisonerLawyer {
+  id                  Int       @id @default(autoincrement())
+  prisonerId          Int
+  lawyerId            Int
+  relationshipStatus  String
+  appointmentHistory  String[]
+  caseStatus          String
+
+  prisoner            Prisoner @relation(fields: [prisonerId], references: [id])
+  lawyer              Lawyer   @relation(fields: [lawyerId], references: [id])
+}
+
+model Applicant {
+  id             Int      @id @default(autoincrement())
+  applicantName  String
+  caseNumber     String
+  email          String   @unique
+  address        String
+  additionalInfo String?  // Optional field
+  file           String?  // Path or URL to the file, optional
+  userid         Int      @unique
+  user           User     @relation(fields: [userid], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+model ContactRequest {
+  id              Int       @id @default(autoincrement())
+  prisonerId      Int       
+  lawyerId        Int       
+  status          Status             @default(Pending)
+  caseDescription String    
+  urgencyLevel    String     
+  contactNo       String   
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  prisoner        Prisoner   @relation(fields: [prisonerId], references: [id])
+  lawyer          Lawyer     @relation(fields: [lawyerId], references: [id])
+}
+
+ model Chat {
+  id         Int        @id @default(autoincrement())
+  user1Id    Int
+  user2Id    Int
+ user1      User       @relation("ChatUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2      User       @relation("ChatUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages   Message[]  // Messages associated with this one-to-one chat
+}
+
+model Message {
+  id        Int       @id @default(autoincrement())
+  sender    User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  Int
+  content   String    @db.Text
+  chat      Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId    Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+
+// lawyerId: Automatically set based on the lawyer's profile the prisoner is viewing.
+// prisonerId: Retrieved from the logged-in user's session or profile.
