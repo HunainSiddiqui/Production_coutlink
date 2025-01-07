@@ -54,7 +54,7 @@ const AppointmentRequests = () => {
     // alert(`Case #${id} has been ${status.toLowerCase()}.`);
 
      // Displaying toast notifications
-    if (status === "Accepted") {
+     if (response.data.request.status === "Accepted") {
       toast.success(`Case #${id} has been accepted.`);
     } else if (status === "Rejected") {
       toast.error(`Case #${id} has been rejected.`);
