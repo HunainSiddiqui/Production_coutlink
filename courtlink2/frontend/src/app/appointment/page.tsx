@@ -88,7 +88,7 @@ const AppointmentRequests = () => {
        if (status === "Accepted") {
          // Send email to the prisoner
          try {
-           axios.post("http://localhost:3000/api/v1/chat/create", {
+           axios.post(`${BACKEND_URL}/api/v1/chat/create`, {
              userId: response.data.request.prisoner.userId,
            },{
               headers: {
