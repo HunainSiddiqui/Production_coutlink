@@ -54,7 +54,7 @@ const AppointmentRequests = () => {
     // alert(`Case #${id} has been ${status.toLowerCase()}.`);
 
      // Displaying toast notifications
-     if (response.data.request.status === "Accepted") {
+     if (status === "Accepted") {
       toast.success(`Case #${id} has been accepted.`);
     } else if (status === "Rejected") {
       toast.error(`Case #${id} has been rejected.`);
@@ -85,7 +85,7 @@ const AppointmentRequests = () => {
     )
     .then((response) => {
       toast.success(`Request status for Case #${id} has been updated.`);
-       if (status === "Accepted") {
+        if (response.data.request.status === "Accepted")  {
          // Send email to the prisoner
          try {
            axios.post(`${BACKEND_URL}/api/v1/chat/create`, {
