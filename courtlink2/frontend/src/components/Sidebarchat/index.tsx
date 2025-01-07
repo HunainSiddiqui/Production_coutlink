@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaSearch } from "react-icons/fa";
+import { BACKEND_URL } from "../../app/config";
 
 type Chat = {
   id: string;
@@ -38,7 +39,7 @@ const Sidebar = ({ onSelectChat }: SidebarProps) => {
         const tokenValue = token.split("=")[1];
 
         const res = await axios.get(
-          "http://localhost:3000/api/v1/chat/my-chats",
+             `${BACKEND_URL}/api/v1/chat/my-chats`,
           {
             headers: { Authorization: `Bearer ${tokenValue}` },
           },
