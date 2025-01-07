@@ -36,67 +36,69 @@ const Addinfo = () => {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setTheme(mediaQuery.matches ? "dark" : "light");
-
+  
+    setFormData((prevData) => ({
+      ...prevData,
+      lawyerId: lawyerId || "", // Prefill lawyerId
+    }));
+  
     const handleChange = (e) => {
       setTheme(e.matches ? "dark" : "light");
     };
-
+  
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+  }, [lawyerId]);
+  
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("token="));
-
-  if (!token) {
-    toast.error("Token not found. Please log in again.");
-    return;
-  }
-
-  const tokenValue = token.split("=")[1];
-  setIsSubmitting(true);
-
-  if (!formData.caseDescription || !formData.contactNo) {
-    toast.warn("Please fill out all required fields.");
-    setIsSubmitting(false);
-    return;
-  }
-
-  try {
-    const res = await axios.post(
-      `${BACKEND_URL}/api/v1/forms/undertrial`,
-      {
-        caseDescription: formData.caseDescription,
-        urgencyLevel: formData.urgencyLevel,
-        contactNo: formData.contactNo,
-        lawyerId:lawyerId
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${tokenValue}`,
-        },
-      },
-    );
-
-    if (res.status === 201) {
-      toast.success("Form submitted successfully!");
-      router.push('/myrequests');
-    } else {
-      toast.error("Unable to submit the form. Please try again.");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+  
+    if (!token) {
+      toast.error("Token not found. Please log in again.");
+      return;
     }
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message ||
-      "Error during form submission. Please try again.";
-    toast.error(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  
+    if (!formData.caseDescription || !formData.contactNo) {
+      toast.warn("Please fill out all required fields.");
+      return;
+    }
+  
+    setIsSubmitting(true);
+  
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/v1/forms/undertrial`,
+        formData, // Directly send formData
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (res.status === 201) {
+        toast.success("Form submitted successfully!");
+        router.push("/myrequests");
+      } else {
+        toast.error("Unable to submit the form. Please try again.");
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Error during form submission. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
 
 
   const handleInputChange = (e) => {
